@@ -23,8 +23,8 @@ type PlanKey = Exclude<PremiumPlan, null>
 // the URLs below. Until that's turned on, these 404 — check before
 // submitting to either store, both require a working privacy policy URL
 // for an app with subscriptions.
-const PRIVACY_POLICY_URL = 'https://suftnetrepo.github.io/quickbid/privacy.html'
-const TERMS_URL           = 'https://suftnetrepo.github.io/quickbid/terms.html'
+const PRIVACY_POLICY_URL = 'https://suftnetrepo.github.io/nailbid/privacy.html'
+const TERMS_URL           = 'https://suftnetrepo.github.io/nailbid/terms.html'
 
 export default function PremiumScreen() {
   const C = useColors()
