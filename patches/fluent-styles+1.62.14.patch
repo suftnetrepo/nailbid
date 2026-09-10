@@ -1,0 +1,850 @@
+diff --git a/node_modules/fluent-styles/lib/commonjs/button/index.js b/node_modules/fluent-styles/lib/commonjs/button/index.js
+index 44f8882..c045b22 100644
+--- a/node_modules/fluent-styles/lib/commonjs/button/index.js
++++ b/node_modules/fluent-styles/lib/commonjs/button/index.js
+@@ -191,15 +191,23 @@ function spinnerColor(props) {
+ 
+ // ─── Button ──────────────────────────────────────────────────────────────────
+ 
+-const Button = ({
++// PATCHED (see patches/fluent-styles+*.patch): Button used to destructure
++// `ref` straight out of props — that only works on React 19's "ref as prop"
++// model. On React 18 a plain function component can never receive a ref at
++// all (React strips it before the function runs), so StyledDropdown's
++// Trigger passing `ref={triggerRef}` to measure this button's on-screen
++// position always got `null` — the option panel then fell back to
++// {top:0,left:0,width:0}, rendering pinned behind the header instead of
++// under the tapped field. forwardRef is the React-18-compatible way to
++// accept a ref, so wrap here instead.
++const Button = /*#__PURE__*/_react.default.forwardRef(({
+   children,
+   loading,
+   leftIcon,
+   rightIcon,
+   disabled,
+-  ref,
+   ...rest
+-}) => {
++}, ref) => {
+   const isDisabled = disabled || loading;
+   return /*#__PURE__*/(0, _jsxRuntime.jsxs)(ButtonBase, {
+     ref: ref,
+@@ -217,7 +225,7 @@ const Button = ({
+       children: children
+     }) : children, !loading && rightIcon ? rightIcon : null]
+   });
+-};
++});
+ Button.displayName = 'StyledButton';
+ const StyledButton = exports.StyledButton = Button;
+ StyledButton.Text = _index.StyledText;
+diff --git a/node_modules/fluent-styles/lib/commonjs/dropdown/index.js b/node_modules/fluent-styles/lib/commonjs/dropdown/index.js
+index 675f48b..51c4db4 100644
+--- a/node_modules/fluent-styles/lib/commonjs/dropdown/index.js
++++ b/node_modules/fluent-styles/lib/commonjs/dropdown/index.js
+@@ -542,44 +542,52 @@ const Trigger = ({
+         };
+     }
+   })();
+-  return /*#__PURE__*/(0, _jsxRuntime.jsxs)(_index4.StyledButton, {
++  // PATCHED (see patches/fluent-styles+*.patch): `ref` used to go straight onto
++  // StyledButton, a plain function component with no forwardRef — the ref
++  // never attached, so useMeasure()'s measureInWindow() call was always a
++  // no-op and the option panel rendered at its default {top:0,left:0,width:0}.
++  // A plain View is a real host component and supports refs natively.
++  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
+     ref: triggerRef,
+-    onPress: onPress,
+-    disabled: disabled || loading,
+-    activeOpacity: 0.75,
+-    compact: true,
+-    height: sz.triggerHeight,
+-    paddingHorizontal: sz.px,
+-    flexDirection: "row",
+-    alignItems: "center",
+-    justifyContent: "space-between",
+-    gap: 8,
+-    opacity: opacity,
+-    accessibilityRole: "button",
+-    accessibilityState: {
+-      expanded: open,
+-      disabled
+-    },
+-    ...variantStyle,
+-    children: [leftIcon ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_index.Stack, {
+-      width: 22,
++    collapsable: false,
++    children: /*#__PURE__*/(0, _jsxRuntime.jsxs)(_index4.StyledButton, {
++      onPress: onPress,
++      disabled: disabled || loading,
++      activeOpacity: 0.75,
++      compact: true,
++      height: sz.triggerHeight,
++      paddingHorizontal: sz.px,
++      flexDirection: "row",
+       alignItems: "center",
+-      justifyContent: "center",
+-      children: leftIcon
+-    }) : null, /*#__PURE__*/(0, _jsxRuntime.jsx)(_index2.StyledText, {
+-      fontSize: sz.fontSize,
+-      color: textColor,
+-      flex: 1,
+-      numberOfLines: 1,
+-      children: label
+-    }), loading ? /*#__PURE__*/(0, _jsxRuntime.jsx)(Spinner, {
+-      color: _theme.theme.colors.gray[400],
+-      size: sz.iconSize
+-    }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(AnimChevron, {
+-      open: open,
+-      color: _theme.theme.colors.gray[400],
+-      size: sz.iconSize
+-    })]
++      justifyContent: "space-between",
++      gap: 8,
++      opacity: opacity,
++      accessibilityRole: "button",
++      accessibilityState: {
++        expanded: open,
++        disabled
++      },
++      ...variantStyle,
++      children: [leftIcon ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_index.Stack, {
++        width: 22,
++        alignItems: "center",
++        justifyContent: "center",
++        children: leftIcon
++      }) : null, /*#__PURE__*/(0, _jsxRuntime.jsx)(_index2.StyledText, {
++        fontSize: sz.fontSize,
++        color: textColor,
++        flex: 1,
++        numberOfLines: 1,
++        children: label
++      }), loading ? /*#__PURE__*/(0, _jsxRuntime.jsx)(Spinner, {
++        color: _theme.theme.colors.gray[400],
++        size: sz.iconSize
++      }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(AnimChevron, {
++        open: open,
++        color: _theme.theme.colors.gray[400],
++        size: sz.iconSize
++      })]
++    })
+   });
+ };
+ 
+diff --git a/node_modules/fluent-styles/lib/commonjs/utiles/styled.js b/node_modules/fluent-styles/lib/commonjs/utiles/styled.js
+index 4487d88..fbe0224 100644
+--- a/node_modules/fluent-styles/lib/commonjs/utiles/styled.js
++++ b/node_modules/fluent-styles/lib/commonjs/utiles/styled.js
+@@ -11,7 +11,13 @@ const styled = (Component, {
+   base,
+   variants
+ } = {}) => {
+-  const StyledComponent = props => {
++  // PATCHED (see patches/fluent-styles+*.patch): every styled() component was
++  // a plain function with no forwardRef, so any ref a caller (including this
++  // library's own internals, e.g. dropdown/button/input trigger measurement)
++  // tried to attach was silently dropped — "Function components cannot be
++  // given refs" — and anything relying on that ref (measureInWindow(), etc.)
++  // silently no-op'd. forwardRef fixes every styled() component at once.
++  const StyledComponent = /*#__PURE__*/_react.default.forwardRef((props, ref) => {
+     const styles = {
+       ...(base || {})
+     };
+@@ -36,9 +42,10 @@ const styled = (Component, {
+     }
+     return /*#__PURE__*/(0, _jsxRuntime.jsx)(Component, {
+       ...cleanProps,
++      ref: ref,
+       style: [styles, incomingStyle]
+     });
+-  };
++  });
+   StyledComponent.displayName = `Styled(${typeof Component === "string" ? Component : Component.displayName ?? Component.name ?? "Component"})`;
+   return StyledComponent;
+ };
+diff --git a/node_modules/fluent-styles/lib/module/button/index.js b/node_modules/fluent-styles/lib/module/button/index.js
+index 2b5aed7..22b190f 100644
+--- a/node_modules/fluent-styles/lib/module/button/index.js
++++ b/node_modules/fluent-styles/lib/module/button/index.js
+@@ -186,15 +186,23 @@ function spinnerColor(props) {
+ 
+ // ─── Button ──────────────────────────────────────────────────────────────────
+ 
+-const Button = ({
++// PATCHED (see patches/fluent-styles+*.patch): Button used to destructure
++// `ref` straight out of props — that only works on React 19's "ref as prop"
++// model. On React 18 a plain function component can never receive a ref at
++// all (React strips it before the function runs), so StyledDropdown's
++// Trigger passing `ref={triggerRef}` to measure this button's on-screen
++// position always got `null` — the option panel then fell back to
++// {top:0,left:0,width:0}, rendering pinned behind the header instead of
++// under the tapped field. forwardRef is the React-18-compatible way to
++// accept a ref, so wrap here instead.
++const Button = /*#__PURE__*/React.forwardRef(({
+   children,
+   loading,
+   leftIcon,
+   rightIcon,
+   disabled,
+-  ref,
+   ...rest
+-}) => {
++}, ref) => {
+   const isDisabled = disabled || loading;
+   return /*#__PURE__*/_jsxs(ButtonBase, {
+     ref: ref,
+@@ -212,7 +220,7 @@ const Button = ({
+       children: children
+     }) : children, !loading && rightIcon ? rightIcon : null]
+   });
+-};
++});
+ Button.displayName = 'StyledButton';
+ const StyledButton = Button;
+ StyledButton.Text = StyledText;
+diff --git a/node_modules/fluent-styles/lib/module/dropdown/index.js b/node_modules/fluent-styles/lib/module/dropdown/index.js
+index b3d2e0c..f68f3fd 100644
+--- a/node_modules/fluent-styles/lib/module/dropdown/index.js
++++ b/node_modules/fluent-styles/lib/module/dropdown/index.js
+@@ -1,7 +1,7 @@
+ "use strict";
+ 
+ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+-import { Animated, BackHandler, Dimensions, FlatList, Modal } from "react-native";
++import { Animated, BackHandler, Dimensions, FlatList, Modal, View } from "react-native";
+ import { theme } from "../utiles/theme.js";
+ import { Stack } from "../stack/index.js";
+ import { StyledText } from "../text/index.js";
+@@ -537,44 +537,49 @@ const Trigger = ({
+         };
+     }
+   })();
+-  return /*#__PURE__*/_jsxs(StyledButton, {
++  // PATCHED (see patches/fluent-styles+*.patch): ref moved off StyledButton
++  // (a plain function component — refs never attached) onto a real View.
++  return /*#__PURE__*/_jsx(View, {
+     ref: triggerRef,
+-    onPress: onPress,
+-    disabled: disabled || loading,
+-    activeOpacity: 0.75,
+-    compact: true,
+-    height: sz.triggerHeight,
+-    paddingHorizontal: sz.px,
+-    flexDirection: "row",
+-    alignItems: "center",
+-    justifyContent: "space-between",
+-    gap: 8,
+-    opacity: opacity,
+-    accessibilityRole: "button",
+-    accessibilityState: {
+-      expanded: open,
+-      disabled
+-    },
+-    ...variantStyle,
+-    children: [leftIcon ? /*#__PURE__*/_jsx(Stack, {
+-      width: 22,
++    collapsable: false,
++    children: /*#__PURE__*/_jsxs(StyledButton, {
++      onPress: onPress,
++      disabled: disabled || loading,
++      activeOpacity: 0.75,
++      compact: true,
++      height: sz.triggerHeight,
++      paddingHorizontal: sz.px,
++      flexDirection: "row",
+       alignItems: "center",
+-      justifyContent: "center",
+-      children: leftIcon
+-    }) : null, /*#__PURE__*/_jsx(StyledText, {
+-      fontSize: sz.fontSize,
+-      color: textColor,
+-      flex: 1,
+-      numberOfLines: 1,
+-      children: label
+-    }), loading ? /*#__PURE__*/_jsx(Spinner, {
+-      color: theme.colors.gray[400],
+-      size: sz.iconSize
+-    }) : /*#__PURE__*/_jsx(AnimChevron, {
+-      open: open,
+-      color: theme.colors.gray[400],
+-      size: sz.iconSize
+-    })]
++      justifyContent: "space-between",
++      gap: 8,
++      opacity: opacity,
++      accessibilityRole: "button",
++      accessibilityState: {
++        expanded: open,
++        disabled
++      },
++      ...variantStyle,
++      children: [leftIcon ? /*#__PURE__*/_jsx(Stack, {
++        width: 22,
++        alignItems: "center",
++        justifyContent: "center",
++        children: leftIcon
++      }) : null, /*#__PURE__*/_jsx(StyledText, {
++        fontSize: sz.fontSize,
++        color: textColor,
++        flex: 1,
++        numberOfLines: 1,
++        children: label
++      }), loading ? /*#__PURE__*/_jsx(Spinner, {
++        color: theme.colors.gray[400],
++        size: sz.iconSize
++      }) : /*#__PURE__*/_jsx(AnimChevron, {
++        open: open,
++        color: theme.colors.gray[400],
++        size: sz.iconSize
++      })]
++    })
+   });
+ };
+ 
+diff --git a/node_modules/fluent-styles/lib/module/utiles/styled.js b/node_modules/fluent-styles/lib/module/utiles/styled.js
+index 29e5fff..a44e238 100644
+--- a/node_modules/fluent-styles/lib/module/utiles/styled.js
++++ b/node_modules/fluent-styles/lib/module/utiles/styled.js
+@@ -6,7 +6,13 @@ const styled = (Component, {
+   base,
+   variants
+ } = {}) => {
+-  const StyledComponent = props => {
++  // PATCHED (see patches/fluent-styles+*.patch): every styled() component was
++  // a plain function with no forwardRef, so any ref a caller (including this
++  // library's own internals, e.g. dropdown/button/input trigger measurement)
++  // tried to attach was silently dropped — "Function components cannot be
++  // given refs" — and anything relying on that ref (measureInWindow(), etc.)
++  // silently no-op'd. forwardRef fixes every styled() component at once.
++  const StyledComponent = /*#__PURE__*/React.forwardRef((props, ref) => {
+     const styles = {
+       ...(base || {})
+     };
+@@ -31,9 +37,10 @@ const styled = (Component, {
+     }
+     return /*#__PURE__*/_jsx(Component, {
+       ...cleanProps,
++      ref: ref,
+       style: [styles, incomingStyle]
+     });
+-  };
++  });
+   StyledComponent.displayName = `Styled(${typeof Component === "string" ? Component : Component.displayName ?? Component.name ?? "Component"})`;
+   return StyledComponent;
+ };
+diff --git a/node_modules/fluent-styles/lib/typescript/dropdown/index.d.ts b/node_modules/fluent-styles/lib/typescript/dropdown/index.d.ts
+index c8640e2..d8170ae 100644
+--- a/node_modules/fluent-styles/lib/typescript/dropdown/index.d.ts
++++ b/node_modules/fluent-styles/lib/typescript/dropdown/index.d.ts
+@@ -34,6 +34,24 @@ interface DropdownBaseProps<TItem extends DropdownOptionItem> extends ViewStyle
+     emptyText?: string;
+     focusColor?: string;
+     groupBy?: (item: TItem) => string;
++    /** Resting-surface + option-panel colour overrides (theme override). */
++    colors?: StyledDropdownColors;
++}
++export interface StyledDropdownColors {
++    /** Trigger box resting background. @default '#fff' */
++    background?: string;
++    /** Trigger box resting border (overridden by focus/error). @default gray[200] */
++    border?: string;
++    /** Selected value text colour. @default gray[800] */
++    text?: string;
++    /** Open option-panel background. @default '#fff' */
++    panelBackground?: string;
++    /** Open option-panel border. @default gray[200] */
++    panelBorder?: string;
++    /** Option row label text colour. @default gray[800] */
++    panelText?: string;
++    /** Dividers / section-header strip background inside the panel. @default gray[100] */
++    panelDivider?: string;
+ }
+ export interface StyledDropdownProps<TItem extends DropdownOptionItem = DropdownOptionItem> extends DropdownBaseProps<TItem> {
+     value?: string;
+diff --git a/node_modules/fluent-styles/lib/typescript/input/index.d.ts b/node_modules/fluent-styles/lib/typescript/input/index.d.ts
+index 6c5e860..df80a44 100644
+--- a/node_modules/fluent-styles/lib/typescript/input/index.d.ts
++++ b/node_modules/fluent-styles/lib/typescript/input/index.d.ts
+@@ -77,6 +77,20 @@ export interface StyledTextInputProps extends CardComponentProps {
+     inputStyle?: TextStyle;
+     fontSize?: number;
+     fontWeight?: TextStyle['fontWeight'];
++    /** Resting-state surface colours (theme override — see StyledFieldColors). */
++    colors?: StyledFieldColors;
++}
++export interface StyledFieldColors {
++    /** Resting background of the input box. @default '#fff' (outline/filled) */
++    background?: string;
++    /** Resting border colour (overridden by focus/error). @default gray[200] */
++    border?: string;
++    /** Typed text colour. @default gray[800] */
++    text?: string;
++    /** Placeholder text colour. @default gray[300] */
++    placeholder?: string;
++    /** Label text colour — `labelProps.color` still wins if also set. @default gray[700] */
++    label?: string;
+ }
+ export interface StyledTextInputHandle extends StyledTextInputProps {
+     focus: () => void;
+diff --git a/node_modules/fluent-styles/src/button/index.tsx b/node_modules/fluent-styles/src/button/index.tsx
+index fb3d820..e623cca 100644
+--- a/node_modules/fluent-styles/src/button/index.tsx
++++ b/node_modules/fluent-styles/src/button/index.tsx
+@@ -285,7 +285,19 @@ function spinnerColor(props: StyledButtonProps): string {
+ 
+ // ─── Button ──────────────────────────────────────────────────────────────────
+ 
+-const Button = ({ children, loading, leftIcon, rightIcon, disabled, ref, ...rest }: StyledButtonProps & { ref?: React.Ref<React.ComponentRef<typeof ButtonBase>> }) => {
++// PATCHED (see patches/fluent-styles+*.patch): `ref` used to be destructured
++// straight out of props — that only works on React 19's "ref as prop" model.
++// On React 18 a plain function component can never receive a ref at all
++// (React strips it before the function runs), so StyledDropdown's Trigger
++// passing `ref={triggerRef}` to measure this button's on-screen position
++// always got null — the option panel then fell back to
++// {top:0,left:0,width:0}, rendering pinned behind the header instead of
++// under the tapped field. forwardRef is the React-18-compatible way to
++// accept a ref, so wrap here instead of destructuring `ref` from props.
++const Button = React.forwardRef<
++  React.ComponentRef<typeof ButtonBase>,
++  StyledButtonProps
++>(({ children, loading, leftIcon, rightIcon, disabled, ...rest }, ref) => {
+   const isDisabled = disabled || loading
+ 
+   return (
+@@ -315,7 +327,7 @@ const Button = ({ children, loading, leftIcon, rightIcon, disabled, ref, ...rest
+       {!loading && rightIcon ? rightIcon : null}
+     </ButtonBase>
+   );
+-};
++});
+ 
+ Button.displayName = 'StyledButton'
+ 
+diff --git a/node_modules/fluent-styles/src/datePicker/index.tsx b/node_modules/fluent-styles/src/datePicker/index.tsx
+index 638d2f4..5ddd308 100644
+--- a/node_modules/fluent-styles/src/datePicker/index.tsx
++++ b/node_modules/fluent-styles/src/datePicker/index.tsx
+@@ -799,7 +799,11 @@ const InputTrigger: React.FC<{
+       borderRadius={12}
+       paddingHorizontal={14}
+       paddingVertical={12}
+-      backgroundColor={palettes.white}
++      // PATCHED: was hard-coded to palettes.white regardless of theme — the
++      // "background" token is already themeable via the `colors` prop (it
++      // already drives the calendar sheet below), so reuse it here too
++      // instead of introducing a second, disconnected background colour.
++      backgroundColor={C.background}
+       onPress={onPress}
+       disabled={disabled}
+     >
+diff --git a/node_modules/fluent-styles/src/dropdown/index.tsx b/node_modules/fluent-styles/src/dropdown/index.tsx
+index 59bec9b..528b0b5 100644
+--- a/node_modules/fluent-styles/src/dropdown/index.tsx
++++ b/node_modules/fluent-styles/src/dropdown/index.tsx
+@@ -81,6 +81,32 @@ interface DropdownBaseProps<TItem extends DropdownOptionItem>
+   emptyText?: string;
+   focusColor?: string;
+   groupBy?: (item: TItem) => string;
++  /**
++   * Resting-surface + option-panel colour overrides — lets a consumer theme
++   * the dropdown (e.g. for dark mode) without the trigger's own focus/error
++   * border logic needing to change. A nested `colors` object (rather than
++   * a flat `backgroundColor` prop) avoids colliding with the `ViewStyle`
++   * props this interface already extends, which style the outer wrapper,
++   * not the trigger box.
++   */
++  colors?: StyledDropdownColors;
++}
++
++export interface StyledDropdownColors {
++  /** Trigger box resting background. @default '#fff' */
++  background?:      string;
++  /** Trigger box resting border (overridden by focus/error). @default gray[200] */
++  border?:          string;
++  /** Selected value text colour. @default gray[800] */
++  text?:            string;
++  /** Open option-panel background. @default '#fff' */
++  panelBackground?: string;
++  /** Open option-panel border. @default gray[200] */
++  panelBorder?:     string;
++  /** Option row label text colour. @default gray[800] */
++  panelText?:       string;
++  /** Dividers / section-header strip background inside the panel. @default gray[100] */
++  panelDivider?:    string;
+ }
+ 
+ export interface StyledDropdownProps<
+@@ -221,11 +247,12 @@ const OptionRow: React.FC<{
+   multiSelect: boolean;
+   size: DropdownSize;
+   focusColor: string;
+-}> = ({ item, selected, onPress, multiSelect, size, focusColor }) => {
++  textColor: string;
++}> = ({ item, selected, onPress, multiSelect, size, focusColor, textColor: baseTextColor }) => {
+   const sz = SZ[size];
+   const textColor = item.disabled
+     ? theme.colors.gray[300]
+-    : theme.colors.gray[800];
++    : baseTextColor;
+ 
+   return (
+     <StyledButton
+@@ -309,6 +336,7 @@ interface ListPanelProps {
+   allSelected?: boolean;
+   onSelectAll?: () => void;
+   onPanelLayout?: (height: number) => void;
++  colors: Required<StyledDropdownColors>;
+ }
+ 
+ type ListEntry = DropdownOptionItem | { _header: string };
+@@ -333,6 +361,7 @@ const ListPanel: React.FC<ListPanelProps> = ({
+   allSelected,
+   onSelectAll,
+   onPanelLayout,
++  colors,
+ }) => {
+   const [query, setQuery] = useState("");
+   const sz = SZ[size];
+@@ -376,7 +405,7 @@ const ListPanel: React.FC<ListPanelProps> = ({
+             paddingHorizontal={sz.px}
+             paddingTop={10}
+             paddingBottom={4}
+-            backgroundColor={theme.colors.gray[50]}
++            backgroundColor={colors.panelDivider}
+           >
+             <StyledText
+               fontSize={11}
+@@ -398,10 +427,11 @@ const ListPanel: React.FC<ListPanelProps> = ({
+           multiSelect={multiSelect}
+           size={size}
+           focusColor={focusColor}
++          textColor={colors.panelText}
+         />
+       );
+     },
+-    [selectedKeys, onSelect, multiSelect, size, focusColor, sz.px],
++    [selectedKeys, onSelect, multiSelect, size, focusColor, sz.px, colors.panelDivider, colors.panelText],
+   );
+ 
+   const keyExtractor = useCallback(
+@@ -427,10 +457,10 @@ const ListPanel: React.FC<ListPanelProps> = ({
+           left={position.left}
+           width={position.width}
+           maxHeight={maxHeight}
+-          backgroundColor={theme.colors.white}
++          backgroundColor={colors.panelBackground}
+           borderRadius={10}
+           borderWidth={1}
+-          borderColor={theme.colors.gray[200]}
++          borderColor={colors.panelBorder}
+           shadowColor={theme.colors.gray[900]}
+           shadowOffset={{
+             width: 0,
+@@ -545,7 +575,7 @@ const ListPanel: React.FC<ListPanelProps> = ({
+               renderItem={renderItem}
+               ItemSeparatorComponent={() => (
+                 <StyledDivider
+-                  backgroundColor={theme.colors.gray[100]}
++                  backgroundColor={colors.panelDivider}
+                   height={1}
+                 />
+               )}
+@@ -634,6 +664,7 @@ const Trigger: React.FC<{
+   hasError: boolean;
+   focusColor: string;
+   leftIcon?: React.ReactNode;
++  colors: Required<StyledDropdownColors>;
+ }> = ({
+   triggerRef,
+   onPress,
+@@ -648,24 +679,25 @@ const Trigger: React.FC<{
+   hasError,
+   focusColor,
+   leftIcon,
++  colors,
+ }) => {
+   const sz = SZ[size];
+   const opacity = disabled ? 0.5 : 1;
+-  const textColor = isPlaceholder ? placeholderColor : theme.colors.gray[800];
++  const textColor = isPlaceholder ? placeholderColor : colors.text;
+ 
+   // Border colour logic
+   const borderColor = hasError
+     ? theme.colors.red[500]
+     : open
+       ? focusColor
+-      : theme.colors.gray[200];
++      : colors.border;
+ 
+   // Variant-specific styles
+   const variantStyle: ViewStyle = (() => {
+     switch (variant) {
+       case "filled":
+         return {
+-          backgroundColor: open ? theme.colors.white : theme.colors.gray[100],
++          backgroundColor: colors.background,
+           borderWidth: 0,
+           borderBottomWidth: open ? 2 : 0,
+           borderBottomColor: borderColor,
+@@ -686,7 +718,7 @@ const Trigger: React.FC<{
+         };
+       default: // outline
+         return {
+-          backgroundColor: theme.colors.white,
++          backgroundColor: colors.background,
+           borderWidth: open ? 1.5 : 1,
+           borderColor: borderColor,
+           borderRadius: 8,
+@@ -810,6 +842,7 @@ export const StyledDropdown = (
+     emptyText = "No options found",
+     focusColor = theme.colors.indigo?.[500] ?? "#6366f1",
+     groupBy,
++    colors: colorsProp,
+     ref,
+     ...rest
+   }: StyledDropdownProps & { ref?: React.Ref<any> },
+@@ -819,6 +852,18 @@ export const StyledDropdown = (
+     const { triggerRef, pos, measure, updatePanelHeight } =
+       useMeasure(maxHeight);
+ 
++    // PATCHED: resolved once here so both the closed Trigger and the open
++    // ListPanel share one themed palette instead of each hard-coding white.
++    const RC: Required<StyledDropdownColors> = {
++      background:      colorsProp?.background      ?? theme.colors.white,
++      border:           colorsProp?.border           ?? theme.colors.gray[200],
++      text:             colorsProp?.text             ?? theme.colors.gray[800],
++      panelBackground:  colorsProp?.panelBackground  ?? theme.colors.white,
++      panelBorder:      colorsProp?.panelBorder      ?? theme.colors.gray[200],
++      panelText:        colorsProp?.panelText        ?? theme.colors.gray[800],
++      panelDivider:     colorsProp?.panelDivider      ?? theme.colors.gray[100],
++    };
++
+     const selected = value ?? internalValue;
+     const hasError = error || !!errorMessage;
+     const selectedItem = useMemo(
+@@ -885,6 +930,7 @@ export const StyledDropdown = (
+           hasError={hasError}
+           focusColor={focusColor}
+           leftIcon={leftIcon}
++          colors={RC}
+         />
+         {open && (
+           <ListPanel
+@@ -897,6 +943,7 @@ export const StyledDropdown = (
+             multiSelect={false}
+             searchable={searchable}
+             searchPlaceholder={searchPlaceholder}
++            colors={RC}
+             clearable={clearable}
+             onClear={handleClear}
+             emptyText={emptyText}
+@@ -943,6 +990,7 @@ export const StyledMultiSelectDropdown = (
+     separator = ", ",
+     maxDisplay = 3,
+     selectAll = false,
++    colors: colorsProp,
+     ref,
+     ...rest
+   }: StyledMultiSelectDropdownProps & { ref?: React.Ref<any> },
+@@ -951,6 +999,17 @@ export const StyledMultiSelectDropdown = (
+     const [internalKeys, setInternalKeys] = useState<string[]>(
+       defaultValue ?? [],
+     );
++
++    // PATCHED: see StyledDropdown above — same shared-palette rationale.
++    const RC: Required<StyledDropdownColors> = {
++      background:      colorsProp?.background      ?? theme.colors.white,
++      border:           colorsProp?.border           ?? theme.colors.gray[200],
++      text:             colorsProp?.text             ?? theme.colors.gray[800],
++      panelBackground:  colorsProp?.panelBackground  ?? theme.colors.white,
++      panelBorder:      colorsProp?.panelBorder      ?? theme.colors.gray[200],
++      panelText:        colorsProp?.panelText        ?? theme.colors.gray[800],
++      panelDivider:     colorsProp?.panelDivider      ?? theme.colors.gray[100],
++    };
+     const { triggerRef, pos, measure, updatePanelHeight } = useMeasure(maxHeight);
+ 
+     const selectedKeys = useMemo(
+@@ -1042,9 +1101,11 @@ export const StyledMultiSelectDropdown = (
+           hasError={hasError}
+           focusColor={focusColor}
+           leftIcon={leftIcon}
++          colors={RC}
+         />
+         {open && (
+           <ListPanel
++            colors={RC}
+             data={data}
+             selectedKeys={selectedKeys}
+             onSelect={handleSelect}
+diff --git a/node_modules/fluent-styles/src/input/index.tsx b/node_modules/fluent-styles/src/input/index.tsx
+index 7dca919..aa4a13c 100644
+--- a/node_modules/fluent-styles/src/input/index.tsx
++++ b/node_modules/fluent-styles/src/input/index.tsx
+@@ -127,6 +127,28 @@ export interface StyledTextInputProps
+   fontSize?:          number
+   fontWeight?:        TextStyle['fontWeight']
+ 
++  // ── Theme override ──────────────────────────────────────────────────────
++  /**
++   * Resting-state surface colours. Lets a consumer theme this field (e.g.
++   * for dark mode) without fighting the focus/error border logic below —
++   * those stay computed internally and only fall back to `colors.border`
++   * when neither focused nor in an error state.
++   */
++  colors?:            StyledFieldColors
++
++}
++
++export interface StyledFieldColors {
++  /** Resting background of the input box. @default '#fff' (outline/filled) */
++  background?:  string
++  /** Resting border colour (overridden by focus/error). @default gray[200] */
++  border?:      string
++  /** Typed text colour. @default gray[800] */
++  text?:        string
++  /** Placeholder text colour. @default gray[300] */
++  placeholder?: string
++  /** Label text colour — `labelProps.color` still wins if also set. @default gray[700] */
++  label?:       string
+ }
+ 
+ // ─── Flat style-prop resolution ────────────────────────────────────────────────
+@@ -138,7 +160,13 @@ export interface StyledTextInputProps
+ // instead of through the shared HOC.
+ const BASE_INPUT_STYLE: TextStyle = {
+     borderColor: theme.colors.gray[200],
+-    backgroundColor: theme.colors.gray[1],
++    // PATCHED: was theme.colors.gray[1] (white) — this style lands on the
++    // *inner* native TextInput, layered on top of the wrap View that
++    // `variantWrapStyle`/`FC.background` already colour. Nothing downstream
++    // ever overrode it, so every input rendered an opaque white rectangle
++    // regardless of the wrap's themed colour. Transparent lets the wrap's
++    // colour actually show through.
++    backgroundColor: 'transparent',
+     flex: 1,
+     color: theme.colors.gray[800],
+     paddingHorizontal: 16,
+@@ -212,7 +240,9 @@ function variantWrapStyle(
+   switch (variant) {
+     case 'filled':
+       return {
+-        backgroundColor: focused ? '#fff' : bg,
++        // PATCHED: used to hard-jump to '#fff' on focus, which fought any
++        // themed `bg` (e.g. a dark surface would flash white on tap).
++        backgroundColor: bg,
+         borderWidth:     focused ? 1.5 : 0,
+         borderColor:     bc,
+       }
+@@ -229,8 +259,11 @@ function variantWrapStyle(
+         borderWidth:     0,
+       }
+     default: // outline
++      // PATCHED: used to hard-code '#fff', ignoring the `bg` param entirely
++      // — the one line responsible for every "white input on a dark
++      // screen" bug. `bg` now carries the caller's themed surface colour.
+       return {
+-        backgroundColor: '#fff',
++        backgroundColor: bg,
+         borderWidth:     focused ? 1.5 : 1,
+         borderColor:     bc,
+       }
+@@ -379,6 +412,7 @@ export const StyledTextInput = (
+     borderColor:      borderColorProp,
+     focusColor        = theme.colors.indigo?.[500] ?? '#6366f1',
+     floatLabel        = false,
++    colors:           colorsProp,
+ 
+     // Styles
+     containerStyle,
+@@ -443,8 +477,20 @@ export const StyledTextInput = (
+     const hasError   = error || !!errorMessage
+     const sz         = SIZE[size]
+ 
++    // PATCHED: `colors` lets a consumer theme the resting surface (e.g. for
++    // dark mode) without touching the focus/error logic below — those stay
++    // computed here and only fall back to `FC.border` when neither focused
++    // nor erroring, so a themed border never masks a validation error.
++    const FC = {
++      background:  colorsProp?.background  ?? (theme.colors.gray[50] ?? '#fafafa'),
++      border:       colorsProp?.border       ?? theme.colors.gray[200],
++      text:         colorsProp?.text         ?? theme.colors.gray[800],
++      placeholder:  colorsProp?.placeholder  ?? theme.colors.gray[300],
++      label:        colorsProp?.label        ?? theme.colors.gray[700],
++    }
++
+     const resolvedBorderColor = borderColorProp
+-      ?? (hasError ? theme.colors.red[500] : theme.colors.gray[200])
++      ?? (hasError ? theme.colors.red[500] : FC.border)
+ 
+     const resolvedFocusColor = hasError
+       ? theme.colors.red[500]
+@@ -453,7 +499,7 @@ export const StyledTextInput = (
+     const wrapStyle = variantWrapStyle(
+       variant,
+       resolvedBorderColor,
+-      theme.colors.gray[50] ?? '#fafafa',
++      FC.background,
+       focused,
+       resolvedFocusColor,
+     )
+@@ -492,7 +538,7 @@ export const StyledTextInput = (
+             <StyledText
+               fontSize={theme.fontSize.small}
+               fontWeight={theme.fontWeight.semiBold}
+-              color={theme.colors.gray[700]}
++              color={FC.label}
+ 
+               marginBottom={6}
+               {...labelProps}
+@@ -559,7 +605,7 @@ export const StyledTextInput = (
+               onFocus={handleFocus}
+               onBlur={handleBlur}
+               placeholder={floatLabel ? undefined : placeholder}
+-              placeholderTextColor={theme.colors.gray[300]}
++              placeholderTextColor={FC.placeholder}
+               editable={editable && !loading}
+               multiline={multiline}
+               numberOfLines={numberOfLines}
+@@ -574,7 +620,7 @@ export const StyledTextInput = (
+                   paddingVertical:   sz.paddingV,
+                   minHeight:         multiline ? sz.minHeight * 2 : sz.minHeight,
+                   opacity:           editable && !loading ? 1 : 0.55,
+-                  color:             theme.colors.gray[800],
++                  color:             FC.text,
+                   textAlignVertical: multiline ? 'top' : 'center',
+                 },
+                 inputStyle,
+diff --git a/node_modules/fluent-styles/src/utiles/styled.tsx b/node_modules/fluent-styles/src/utiles/styled.tsx
+index ce470e3..469334f 100644
+--- a/node_modules/fluent-styles/src/utiles/styled.tsx
++++ b/node_modules/fluent-styles/src/utiles/styled.tsx
+@@ -17,7 +17,17 @@ const styled = <P extends object>(
+     Component: ComponentType<P>,
+     { base, variants }: StyledOptions = {}
+ ) => {
+-    const StyledComponent = (props: P & { ref?: React.Ref<any> }) => {
++    // PATCHED (see patches/fluent-styles+*.patch): this was a plain function
++    // component with no forwardRef, relying on props.ref which only exists
++    // under React 19's "ref as prop" model. On React 18 (still the baseline
++    // for RN/Expo apps consuming this library) a plain function component
++    // can never receive a ref — React strips it before the function runs —
++    // so any ref a caller attached (including this library's own internals,
++    // e.g. StyledDropdown's Trigger measuring its own on-screen position)
++    // silently dropped, with a "Function components cannot be given refs"
++    // warning and the ref's .current staying null forever. forwardRef fixes
++    // every styled() component at once on both React versions.
++    const StyledComponent = React.forwardRef<any, P>((props, ref) => {
+         const styles: Style = { ...(base || {}) };
+         const options = props as Record<string, any>;
+         const incomingStyle = options.style;
+@@ -39,8 +49,8 @@ const styled = <P extends object>(
+             });
+         }
+ 
+-       return <Component {...(cleanProps as P)} style={[styles, incomingStyle]} />;
+-    };
++       return <Component {...(cleanProps as P)} ref={ref} style={[styles, incomingStyle]} />;
++    });
+ 
+     StyledComponent.displayName = `Styled(${
+         typeof Component === "string" ? Component : Component.displayName ?? Component.name ?? "Component"

@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "NailBid",
+    "slug": "quickbid",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.suftnet.quickbid"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#E8470A"
+      },
+      "package": "com.suftnet.quickbid"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-sqlite",
+        {
+          "enableFTS": true
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "NailBid uses Face ID to unlock the app so your business and customer data stays protected."
+        }
+      ]
+    ],
+    "scheme": "quickbid",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
