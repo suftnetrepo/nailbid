@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Share } from 'react-native'
+import { Share, Platform } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import {
   StyledPage, StyledScrollView, Stack,
@@ -42,7 +42,7 @@ export default function InvoiceDetailScreen() {
 
   if (!inv) {
     return (
-      <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+      <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
         <ScreenHeader title="Invoice" onBackPress={() => goBack('/(tabs)/invoices')} />
         <Stack flex={1} alignItems="center" justifyContent="center">
           <Text variant="body" color={C.textMuted}>Loading…</Text>
@@ -115,7 +115,7 @@ export default function InvoiceDetailScreen() {
   }
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
       <ScreenHeader
         title={inv.number}
         onBackPress={() => goBack('/(tabs)/invoices')}

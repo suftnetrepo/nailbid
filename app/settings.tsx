@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Image } from 'react-native'
+import { Image, Platform } from 'react-native'
 import { router } from 'expo-router'
 import {
   StyledPage, StyledScrollView, Stack,
@@ -139,7 +139,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
       <ScreenHeader title="Settings" onBackPress={() => goBack()} />
 
       <StyledScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>

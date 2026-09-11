@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Platform } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   StyledPage, StyledScrollView, Stack,
@@ -73,7 +74,7 @@ export default function NewQuoteScreen() {
   }
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
       <ScreenHeader
         title="New quote"
         onBackPress={() => goBack()}

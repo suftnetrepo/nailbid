@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Platform } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   StyledPage, StyledScrollView, Stack,
@@ -81,7 +82,7 @@ export default function QuoteItemsScreen() {
     : { subtotal: 0, cisDeduction: 0, vat: 0, total: 0 }
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
       <ScreenHeader
         title={quote?.number ? `Add items · ${quote.number}` : 'Add items'}
         onBackPress={() => goBack(`/quote/${id}`)}

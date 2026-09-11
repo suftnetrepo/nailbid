@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Platform } from 'react-native'
 import {
   StyledPage, StyledScrollView, Stack,
   StyledCard, StyledDivider, StyledPressable, StyledForm,
@@ -73,7 +74,7 @@ export default function SecurityScreen() {
 
   if (view === 'create_pin' || view === 'confirm_pin') {
     return (
-      <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+      <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
         <ScreenHeader
           title={view === 'create_pin' ? 'Set PIN' : 'Confirm PIN'}
           onBackPress={() => { setView('main'); setPinError('') }}
@@ -91,7 +92,7 @@ export default function SecurityScreen() {
   }
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
       <ScreenHeader title="Security" onBackPress={() => goBack('/settings')} />
 
       <StyledScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Platform } from 'react-native'
 import { router } from 'expo-router'
 import {
   StyledPage, StyledScrollView, Stack,
@@ -27,7 +28,7 @@ export default function CustomersScreen() {
   )
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
       <ScreenHeader title="Customers" variant="large" onBackPress={() => router.push('/(tabs)')} />
 
       <Stack paddingHorizontal={16} paddingTop={12} paddingBottom={4}>

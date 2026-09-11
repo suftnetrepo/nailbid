@@ -131,6 +131,77 @@ index 675f48b..51c4db4 100644
    });
  };
  
+diff --git a/node_modules/fluent-styles/lib/commonjs/page/index.js b/node_modules/fluent-styles/lib/commonjs/page/index.js
+index d5102ea..f416e9b 100644
+--- a/node_modules/fluent-styles/lib/commonjs/page/index.js
++++ b/node_modules/fluent-styles/lib/commonjs/page/index.js
+@@ -10,24 +10,32 @@ var _reactNative = require("react-native");
+ var _index2 = require("../header/index.js");
+ var _jsxRuntime = require("react/jsx-runtime");
+ function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
++// PATCHED (see patches/fluent-styles+*.patch): statusBarStyle used to
++// default to a hardcoded 'dark-content' regardless of theme, and
++// translucentStatusBar had no Android default — see src/page/index.tsx for
++// the full explanation (StatusBar backgroundColor is a no-op under
++// edge-to-edge, which is unavoidable on Android at targetSdk 35+).
+ const Page = ({
+   children,
+   statusBarProps,
+   showStatusBar = true,
+-  statusBarStyle = 'dark-content',
++  statusBarStyle,
+   statusBarBackgroundColor,
+   hideStatusBarOnAndroid,
+   hideStatusBarOnIOS,
+   translucentStatusBar,
+   ...props
+ }) => {
++  const colorScheme = (0, _reactNative.useColorScheme)();
++  const resolvedStatusBarStyle = statusBarStyle ?? (colorScheme === 'dark' ? 'light-content' : 'dark-content');
++  const resolvedTranslucent = translucentStatusBar ?? _reactNative.Platform.select({ android: true, default: undefined });
+   return /*#__PURE__*/(0, _jsxRuntime.jsxs)(_index.StyledSafeAreaView, {
+     ...props,
+     children: [showStatusBar && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.StatusBar, {
+       hidden: hideStatusBarOnAndroid || hideStatusBarOnIOS,
+-      barStyle: statusBarStyle,
++      barStyle: resolvedStatusBarStyle,
+       backgroundColor: statusBarBackgroundColor,
+-      translucent: translucentStatusBar,
++      translucent: resolvedTranslucent,
+       ...statusBarProps
+     }), children]
+   });
+diff --git a/node_modules/fluent-styles/lib/commonjs/pressable/index.js b/node_modules/fluent-styles/lib/commonjs/pressable/index.js
+index 9db614c..60a173f 100644
+--- a/node_modules/fluent-styles/lib/commonjs/pressable/index.js
++++ b/node_modules/fluent-styles/lib/commonjs/pressable/index.js
+@@ -11,7 +11,10 @@ const StyledPressable = exports.StyledPressable = (0, _styled.styled)(_reactNati
+   base: {
+     position: 'relative'
+   },
++  // PATCHED (see patches/fluent-styles+*.patch): was missing
++  // viewStyleVariants — see lib/module/pressable/index.js for detail.
+   variants: {
++    ..._viewStyleVariants.viewStyleVariants,
+     ..._viewStyleVariants.viewStyleStringVariants
+   }
+ });
+diff --git a/node_modules/fluent-styles/lib/commonjs/safeAreaView/index.js b/node_modules/fluent-styles/lib/commonjs/safeAreaView/index.js
+index 5f1ef8d..e46a43c 100644
+--- a/node_modules/fluent-styles/lib/commonjs/safeAreaView/index.js
++++ b/node_modules/fluent-styles/lib/commonjs/safeAreaView/index.js
+@@ -11,7 +11,11 @@ const StyledSafeAreaView = exports.StyledSafeAreaView = (0, _styled.styled)(_rea
+   base: {
+     flex: 1
+   },
++  // PATCHED (see patches/fluent-styles+*.patch): was missing
++  // viewStyleVariants (backgroundColor/padding/margin/width/height/
++  // borderRadius/etc) — see lib/module/safeAreaView/index.js for detail.
+   variants: {
++    ..._viewStyleVariants.viewStyleVariants,
+     ..._viewStyleVariants.viewStyleStringVariants
+   }
+ });
 diff --git a/node_modules/fluent-styles/lib/commonjs/utiles/styled.js b/node_modules/fluent-styles/lib/commonjs/utiles/styled.js
 index 4487d88..fbe0224 100644
 --- a/node_modules/fluent-styles/lib/commonjs/utiles/styled.js
@@ -301,6 +372,99 @@ index b3d2e0c..f68f3fd 100644
    });
  };
  
+diff --git a/node_modules/fluent-styles/lib/module/page/index.js b/node_modules/fluent-styles/lib/module/page/index.js
+index 5f84e8d..4e9a60e 100644
+--- a/node_modules/fluent-styles/lib/module/page/index.js
++++ b/node_modules/fluent-styles/lib/module/page/index.js
+@@ -2,27 +2,35 @@
+ 
+ import React from 'react';
+ import { StyledSafeAreaView } from "../safeAreaView/index.js";
+-import { StatusBar } from 'react-native';
++import { StatusBar, Platform, useColorScheme } from 'react-native';
+ import { StyledHeader } from "../header/index.js";
+ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
++// PATCHED (see patches/fluent-styles+*.patch): statusBarStyle used to
++// default to a hardcoded 'dark-content' regardless of theme, and
++// translucentStatusBar had no Android default — see src/page/index.tsx for
++// the full explanation (StatusBar backgroundColor is a no-op under
++// edge-to-edge, which is unavoidable on Android at targetSdk 35+).
+ const Page = ({
+   children,
+   statusBarProps,
+   showStatusBar = true,
+-  statusBarStyle = 'dark-content',
++  statusBarStyle,
+   statusBarBackgroundColor,
+   hideStatusBarOnAndroid,
+   hideStatusBarOnIOS,
+   translucentStatusBar,
+   ...props
+ }) => {
++  const colorScheme = useColorScheme();
++  const resolvedStatusBarStyle = statusBarStyle ?? (colorScheme === 'dark' ? 'light-content' : 'dark-content');
++  const resolvedTranslucent = translucentStatusBar ?? Platform.select({ android: true, default: undefined });
+   return /*#__PURE__*/_jsxs(StyledSafeAreaView, {
+     ...props,
+     children: [showStatusBar && /*#__PURE__*/_jsx(StatusBar, {
+       hidden: hideStatusBarOnAndroid || hideStatusBarOnIOS,
+-      barStyle: statusBarStyle,
++      barStyle: resolvedStatusBarStyle,
+       backgroundColor: statusBarBackgroundColor,
+-      translucent: translucentStatusBar,
++      translucent: resolvedTranslucent,
+       ...statusBarProps
+     }), children]
+   });
+diff --git a/node_modules/fluent-styles/lib/module/pressable/index.js b/node_modules/fluent-styles/lib/module/pressable/index.js
+index f4b2a3e..06f9cdc 100644
+--- a/node_modules/fluent-styles/lib/module/pressable/index.js
++++ b/node_modules/fluent-styles/lib/module/pressable/index.js
+@@ -2,12 +2,17 @@
+ 
+ import { Pressable } from 'react-native';
+ import { styled } from "../utiles/styled.js";
+-import { viewStyleStringVariants } from "../utiles/viewStyleVariants.js";
++import { viewStyleVariants, viewStyleStringVariants } from "../utiles/viewStyleVariants.js";
+ const StyledPressable = styled(Pressable, {
+   base: {
+     position: 'relative'
+   },
++  // PATCHED (see patches/fluent-styles+*.patch): same missing-
++  // viewStyleVariants bug as safeAreaView — width/height/borderRadius/
++  // backgroundColor passed to StyledPressable (e.g. the icon buttons on
++  // the home screen header) were silently dropped instead of styled.
+   variants: {
++    ...viewStyleVariants,
+     ...viewStyleStringVariants
+   }
+ });
+diff --git a/node_modules/fluent-styles/lib/module/safeAreaView/index.js b/node_modules/fluent-styles/lib/module/safeAreaView/index.js
+index 37a10f2..f5ed122 100644
+--- a/node_modules/fluent-styles/lib/module/safeAreaView/index.js
++++ b/node_modules/fluent-styles/lib/module/safeAreaView/index.js
+@@ -2,12 +2,20 @@
+ 
+ import { SafeAreaView } from 'react-native-safe-area-context';
+ import { styled } from "../utiles/styled.js";
+-import { viewStyleStringVariants } from "../utiles/viewStyleVariants.js";
++import { viewStyleVariants, viewStyleStringVariants } from "../utiles/viewStyleVariants.js";
+ const StyledSafeAreaView = styled(SafeAreaView, {
+   base: {
+     flex: 1
+   },
++  // PATCHED (see patches/fluent-styles+*.patch): this only spread
++  // viewStyleStringVariants, so backgroundColor/padding/margin/width/
++  // height/borderRadius/etc (all defined in viewStyleVariants) were never
++  // registered as variants here — they fell through as raw unhandled
++  // props on SafeAreaView instead of landing in `style`, so e.g.
++  // <StyledPage backgroundColor={...}> silently did nothing. Stack
++  // spreads both and works correctly; this now matches that.
+   variants: {
++    ...viewStyleVariants,
+     ...viewStyleStringVariants
+   }
+ });
 diff --git a/node_modules/fluent-styles/lib/module/utiles/styled.js b/node_modules/fluent-styles/lib/module/utiles/styled.js
 index 29e5fff..a44e238 100644
 --- a/node_modules/fluent-styles/lib/module/utiles/styled.js
@@ -677,13 +841,13 @@ index 59bec9b..528b0b5 100644
              selectedKeys={selectedKeys}
              onSelect={handleSelect}
 diff --git a/node_modules/fluent-styles/src/input/index.tsx b/node_modules/fluent-styles/src/input/index.tsx
-index 7dca919..aa4a13c 100644
+index 7dca919..2c60e9c 100644
 --- a/node_modules/fluent-styles/src/input/index.tsx
 +++ b/node_modules/fluent-styles/src/input/index.tsx
 @@ -127,6 +127,28 @@ export interface StyledTextInputProps
    fontSize?:          number
    fontWeight?:        TextStyle['fontWeight']
- 
+   
 +  // ── Theme override ──────────────────────────────────────────────────────
 +  /**
 +   * Resting-state surface colours. Lets a consumer theme this field (e.g.
@@ -793,7 +957,7 @@ index 7dca919..aa4a13c 100644
                fontWeight={theme.fontWeight.semiBold}
 -              color={theme.colors.gray[700]}
 +              color={FC.label}
- 
+             
                marginBottom={6}
                {...labelProps}
 @@ -559,7 +605,7 @@ export const StyledTextInput = (
@@ -814,6 +978,122 @@ index 7dca919..aa4a13c 100644
                    textAlignVertical: multiline ? 'top' : 'center',
                  },
                  inputStyle,
+diff --git a/node_modules/fluent-styles/src/page/index.tsx b/node_modules/fluent-styles/src/page/index.tsx
+index 951b4f5..78d8772 100644
+--- a/node_modules/fluent-styles/src/page/index.tsx
++++ b/node_modules/fluent-styles/src/page/index.tsx
+@@ -1,6 +1,6 @@
+ import React from 'react';
+ import { StyledSafeAreaView, StyledSafeAreaViewProps } from '../safeAreaView';
+-import { StatusBar, StatusBarProps } from 'react-native';
++import { StatusBar, StatusBarProps, Platform, useColorScheme } from 'react-native';
+ import { StyledHeader } from '../header';
+ 
+ interface StyledPageProps extends StyledSafeAreaViewProps {
+@@ -19,10 +19,44 @@ interface StyledPageType {
+     displayName?: string;
+ }
+ 
+-const Page = ({ children, statusBarProps, showStatusBar = true, statusBarStyle = 'dark-content', statusBarBackgroundColor, hideStatusBarOnAndroid, hideStatusBarOnIOS, translucentStatusBar, ...props }: React.PropsWithChildren<StyledPageProps>) => {
++// PATCHED (see patches/fluent-styles+*.patch): statusBarStyle used to default
++// to a hardcoded 'dark-content' regardless of the active theme — any screen
++// rendered in dark mode that forgot to pass its own statusBarStyle got dark
++// (near-invisible) status bar icons on a dark background. Falls back to the
++// OS color scheme via useColorScheme() instead, same signal Platform-aware
++// callers already use for their own explicit statusBarStyle.
++//
++// translucentStatusBar now also defaults to true on Android specifically
++// (via Platform.select): with edge-to-edge unavoidable from targetSdk 35+,
++// StatusBar's `backgroundColor` prop is deprecated and silently ignored on
++// Android there, so a non-translucent bar left the *native* window
++// background (white by default) showing behind the status bar instead of
++// the page's own backgroundColor — the "dark theme shows a white bar on
++// Android" bug. iOS's status bar is always an overlay, so it's left
++// unaffected (translucentStatusBar stays undefined there unless the caller
++// sets it).
++const Page = ({
++    children, statusBarProps, showStatusBar = true,
++    statusBarStyle, statusBarBackgroundColor,
++    hideStatusBarOnAndroid, hideStatusBarOnIOS,
++    translucentStatusBar,
++    ...props
++}: React.PropsWithChildren<StyledPageProps>) => {
++    const colorScheme = useColorScheme();
++    const resolvedStatusBarStyle = statusBarStyle ?? (colorScheme === 'dark' ? 'light-content' : 'dark-content');
++    const resolvedTranslucent = translucentStatusBar ?? Platform.select({ android: true, default: undefined });
++
+     return (
+         <StyledSafeAreaView {...props}>
+-            {showStatusBar && <StatusBar hidden={hideStatusBarOnAndroid || hideStatusBarOnIOS} barStyle={statusBarStyle} backgroundColor={statusBarBackgroundColor} translucent={translucentStatusBar} {...statusBarProps} />}
++            {showStatusBar && (
++                <StatusBar
++                    hidden={hideStatusBarOnAndroid || hideStatusBarOnIOS}
++                    barStyle={resolvedStatusBarStyle}
++                    backgroundColor={statusBarBackgroundColor}
++                    translucent={resolvedTranslucent}
++                    {...statusBarProps}
++                />
++            )}
+             {children}
+         </StyledSafeAreaView>
+     )
+diff --git a/node_modules/fluent-styles/src/pressable/index.tsx b/node_modules/fluent-styles/src/pressable/index.tsx
+index 21f8986..1d5bdce 100644
+--- a/node_modules/fluent-styles/src/pressable/index.tsx
++++ b/node_modules/fluent-styles/src/pressable/index.tsx
+@@ -2,16 +2,21 @@
+ import { Pressable, PressableProps } from 'react-native';
+ import { styled } from '../utiles/styled';
+ import { ViewStyle } from '../utiles/viewStyleProps';
+-import { viewStyleStringVariants } from '../utiles/viewStyleVariants';
++import { viewStyleVariants, viewStyleStringVariants } from '../utiles/viewStyleVariants';
+ 
+ type StyledPressableProps = PressableProps & ViewStyle;
+ 
++// PATCHED (see patches/fluent-styles+*.patch): same missing-viewStyleVariants
++// bug as safeAreaView — width/height/borderRadius/backgroundColor passed to
++// StyledPressable (e.g. the icon buttons on the home screen header) were
++// silently dropped instead of styled.
+ const StyledPressable = styled<StyledPressableProps>(Pressable, {
+     base: {
+         position: 'relative',
+     } as ViewStyle,
+     variants: {
+-        ...viewStyleStringVariants
++        ...viewStyleVariants,
++        ...viewStyleStringVariants,
+     } as any
+ });
+ 
+diff --git a/node_modules/fluent-styles/src/safeAreaView/index.tsx b/node_modules/fluent-styles/src/safeAreaView/index.tsx
+index f263640..68cea35 100644
+--- a/node_modules/fluent-styles/src/safeAreaView/index.tsx
++++ b/node_modules/fluent-styles/src/safeAreaView/index.tsx
+@@ -4,15 +4,23 @@ import {
+ } from 'react-native-safe-area-context';
+ import { styled } from '../utiles/styled';
+ import { ViewStyleProps, ViewStyle } from '../utiles/viewStyleProps';
+-import { viewStyleStringVariants } from '../utiles/viewStyleVariants';
++import { viewStyleVariants, viewStyleStringVariants } from '../utiles/viewStyleVariants';
+ 
+ type StyledSafeAreaViewProps = SafeAreaViewProps & ViewStyleProps;
+ 
++// PATCHED (see patches/fluent-styles+*.patch): this only spread
++// viewStyleStringVariants, so backgroundColor/padding/margin/width/height/
++// borderRadius/etc (all defined in viewStyleVariants) were never registered
++// as variants here — they fell through as raw unhandled props on
++// SafeAreaView instead of landing in `style`, so e.g.
++// <StyledPage backgroundColor={...}> silently did nothing. Stack spreads
++// both and works correctly; this now matches that.
+ const StyledSafeAreaView = styled<StyledSafeAreaViewProps>(SafeAreaView, {
+     base: {
+     flex: 1,
+     } as ViewStyle,
+     variants: {
++      ...viewStyleVariants,
+       ...viewStyleStringVariants,
+     }
+ });
 diff --git a/node_modules/fluent-styles/src/utiles/styled.tsx b/node_modules/fluent-styles/src/utiles/styled.tsx
 index ce470e3..469334f 100644
 --- a/node_modules/fluent-styles/src/utiles/styled.tsx

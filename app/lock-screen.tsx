@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Stack, StyledPage, StyledPressable } from 'fluent-styles'
+import { Platform } from 'react-native'
+import { Stack, StyledPage, StyledPressable, theme } from 'fluent-styles'
 import { Text } from '../src/components/Text'
 import { PinPad } from '../src/components/PinPad'
 import { useColors, useIsDark, SECURITY_CONFIG } from '../src/constants'
@@ -78,7 +79,7 @@ export default function LockScreen() {
   }
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined} showStatusBar statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
       <Stack alignItems="center" paddingTop={64} gap={10}>
         <Stack width={64} height={64} borderRadius={20} backgroundColor={C.primaryBg} alignItems="center" justifyContent="center">
           <LockIcon size={28} strokeWidth={2} color={C.primary} />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Share } from 'react-native'
+import { Share, Platform } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   StyledPage, StyledScrollView, Stack,
@@ -43,7 +43,7 @@ export default function QuoteDetailScreen() {
 
   if (!quote) {
     return (
-      <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+      <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
         <ScreenHeader title="Quote" onBackPress={() => goBack('/(tabs)/quotes')} />
         <Stack flex={1} alignItems="center" justifyContent="center">
           <Text variant="body" color={C.textMuted}>Loading…</Text>
@@ -143,7 +143,7 @@ export default function QuoteDetailScreen() {
   const material = quote.items.filter((i) => i.type === 'material')
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
       <ScreenHeader
         title={quote.number}
         onBackPress={() => goBack('/(tabs)/quotes')}

@@ -5,7 +5,7 @@ import {
   StyledCard, StyledButton, StyledPressable,
   StyledDivider,
 } from 'fluent-styles'
-import { Image } from 'react-native'
+import { Image, Platform } from 'react-native'
 import { Text } from '../../src/components/Text'
 import { useColors, useIsDark, getStatusColors } from '../../src/constants'
 import { useDashboard, useQuotes, useInvoices, useSettings } from '../../src/hooks'
@@ -63,7 +63,13 @@ export default function DashboardScreen() {
   const trendColor = trend !== null && trend < 0 ? '#F87171' : '#4ADE80'
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage
+      flex={1}
+      backgroundColor={C.bg}
+      showStatusBar
+      statusBarStyle={isDark ? 'light-content' : 'dark-content'}
+      statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}
+    >
       <StyledPage.Header.Full>
          {/* Greeting header */}
         <Stack marginHorizontal={24} horizontal alignItems="flex-start" justifyContent="space-between">

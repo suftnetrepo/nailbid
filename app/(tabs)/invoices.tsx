@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Platform } from "react-native";
 import { router } from "expo-router";
 import {
   StyledPage,
@@ -64,6 +65,7 @@ export default function InvoicesScreen() {
       flex={1}
       backgroundColor={C.bg}
       statusBarStyle={isDark ? "light-content" : "dark-content"}
+      statusBarBackgroundColor={Platform.OS === "android" ? C.bg : undefined}
     >
       <ScreenHeader title="Invoices" variant="large" onBackPress={() => router.push('/(tabs)')} />
 

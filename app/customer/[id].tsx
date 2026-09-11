@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Linking } from 'react-native'
+import { Linking, Platform } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   StyledPage, StyledScrollView, Stack,
@@ -57,7 +57,7 @@ export default function CustomerDetailScreen() {
 
   if (!customer) {
     return (
-      <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+      <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
         <ScreenHeader title="Customer" onBackPress={() => goBack('/(tabs)/customers')} />
         <Stack flex={1} alignItems="center" justifyContent="center">
           <Text variant="body" color={C.textMuted}>Loading…</Text>
@@ -94,7 +94,7 @@ export default function CustomerDetailScreen() {
   ].filter(Boolean) as { key: string; label: string; Icon: typeof MailIcon; bg: string; solid: string; onPress: () => void }[]
 
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
       <ScreenHeader
         title={customer.name}
         onBackPress={() => goBack('/(tabs)/customers')}
