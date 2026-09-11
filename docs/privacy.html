@@ -50,13 +50,14 @@
       <div class="brand-name">NailBid</div>
     </div>
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: 9 September 2026</p>
+    <p class="updated">Last updated: 11 September 2026</p>
   </header>
 
   <p>
     NailBid ("NailBid", "we", "us") is a quoting and invoicing app built for tradespeople
-    and small construction businesses. This policy explains what data NailBid handles,
-    how it's stored, and what — if anything — leaves your device.
+    and small construction businesses, available worldwide with support for currencies
+    across Europe, the Americas and Africa. This policy explains what data NailBid
+    handles, how it's stored, and what — if anything — leaves your device.
   </p>
 
   <div class="callout">
@@ -121,7 +122,18 @@
     for how they handle this data.
   </p>
 
-  <h2>4. What NailBid does not do</h2>
+  <h2>4. PIN and biometric lock</h2>
+  <p>
+    NailBid offers an optional PIN lock and Face ID / Touch ID unlock
+    (Settings → Security). If you turn this on:
+  </p>
+  <ul>
+    <li>Your PIN is never stored as plain text — only a one-way cryptographic hash of it is saved, on your device, using iOS's Secure Enclave-backed Keychain (via <code>expo-secure-store</code>).</li>
+    <li>Face ID / Touch ID authentication is handled entirely by your device's operating system — NailBid never sees or stores your biometric data itself, only a yes/no result from the OS.</li>
+    <li>None of this — your PIN hash, biometric results, or lock/attempt history — ever leaves your device.</li>
+  </ul>
+
+  <h2>5. What NailBid does not do</h2>
   <ul>
     <li>No analytics or tracking SDKs of any kind are built into the app.</li>
     <li>No advertising, and no ad networks.</li>
@@ -129,7 +141,7 @@
     <li>We do not sell, rent, or share your business or customer data — we don't have it to begin with.</li>
   </ul>
 
-  <h2>5. Your data, your control</h2>
+  <h2>6. Your data, your control</h2>
   <p>
     Because your business and customer data lives only on your device, you are
     always in control of it: edit or delete any customer, quote, or invoice
@@ -138,13 +150,33 @@
     for us to delete on your behalf, because none exists.
   </p>
 
-  <h2>6. Children's privacy</h2>
+  <h2>7. Children's privacy</h2>
   <p>
     NailBid is a business tool intended for tradespeople and is not directed
-    at children. We do not knowingly collect information from anyone under 16.
+    at children. We do not knowingly collect information from children under
+    13 (or the relevant minimum age where you live, if higher).
   </p>
 
-  <h2>7. Changes to this policy</h2>
+  <h2>8. App Store / Play Store privacy labels</h2>
+  <p>
+    Apple and Google both require a short, structured summary of what an app
+    collects, shown on the app's store listing before you install it. For
+    NailBid, that summary is:
+  </p>
+  <ul>
+    <li><strong>Purchases</strong> (purchase history) — linked to your anonymous app user identifier, used only to activate and verify NailBid Pro. Not used for tracking.</li>
+    <li><strong>Identifiers</strong> (the anonymous app user identifier itself) — linked to you in the sense above, used only for the same purpose. Not used for tracking.</li>
+  </ul>
+  <p>
+    Everything else described in this policy — your business, customer,
+    quote and invoice data, your PIN, and your app preferences — is <strong>not
+    collected</strong> under Apple's or Google's definitions, because it never
+    leaves your device. NailBid does not use any analytics, advertising, or
+    tracking SDKs, and does not share data with data brokers or for
+    cross-app/cross-site advertising purposes.
+  </p>
+
+  <h2>9. Changes to this policy</h2>
   <p>
     If NailBid's data practices change — for example, if we ever introduce an
     optional cloud sync feature — this page will be updated with a new "last
@@ -152,7 +184,7 @@
     for your consent first.
   </p>
 
-  <h2>8. Contact</h2>
+  <h2>10. Contact</h2>
   <p>
     Questions about this policy or how NailBid handles data can be sent to
     <a href="mailto:support@suftnet.dev">support@suftnet.dev</a>.
