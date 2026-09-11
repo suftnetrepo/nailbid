@@ -1,7 +1,7 @@
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
 import * as FileSystem from 'expo-file-system'
-import { formatCurrency, formatFullDate, formatShortDate } from '../utils'
+import { formatCurrency, formatFullDate, formatShortDate, LOGO_MIME_TYPE } from '../utils'
 import type { QuoteWithRefs } from './quoteService'
 import type { InvoiceWithRefs } from './invoiceService'
 import type { Settings } from '../db/schema'
@@ -35,6 +35,7 @@ const BASE_CSS = `
     display: flex; align-items: center; justify-content: center;
     color: white; font-size: 18px; font-weight: 800; line-height: 36px;
     text-align: center;
+    object-fit: cover; /* no-op on the <div> fallback, only affects the <img> */
   }
   .brand-name { font-size: 20px; font-weight: 800; color: #1a1a2e; }
   .brand-sub  { font-size: 11px; color: #6b7280; margin-top: 1px; }
@@ -152,6 +153,14 @@ const watermarkHtml = (isPremium: boolean): string => isPremium ? '' : `
   </div>
 `
 
+// The uploaded business logo (Settings → tap the profile avatar), if any —
+// falls back to the plain "N" letter mark otherwise. Same 36x36 box either
+// way via the shared .brand-icon class, just an <img> instead of a <div>.
+const brandMarkHtml = (settings: Settings | null): string =>
+  settings?.logoBase64
+    ? `<img class="brand-icon" src="data:${LOGO_MIME_TYPE};base64,${settings.logoBase64}" />`
+    : `<div class="brand-icon">N</div>`
+
 // ─── Quote HTML ───────────────────────────────────────────────────────────────
 
 export const buildQuoteHtml = (
@@ -232,7 +241,7 @@ export const buildQuoteHtml = (
 
         <div class="doc-header">
           <div class="brand">
-            <div class="brand-icon">N</div>
+            ${brandMarkHtml(settings)}
             <div>
               <div class="brand-name">${biz}</div>
               ${telLine}${emailLine}${vatLine}
@@ -362,7 +371,7 @@ export const buildInvoiceHtml = (
 
         <div class="doc-header">
           <div class="brand">
-            <div class="brand-icon">N</div>
+            ${brandMarkHtml(settings)}
             <div>
               <div class="brand-name">${biz}</div>
               ${telLine}${emailLine}${vatLine}

@@ -3,6 +3,7 @@ import { useCurrencyStore } from '../stores'
 import { getCurrency } from '../constants/currencies'
 
 export { goBack } from './navigation'
+export { pickBusinessLogo, LOGO_MIME_TYPE } from './logo'
 
 // ─── ID generator ─────────────────────────────────────────────────────────────
 

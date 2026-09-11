@@ -68,4 +68,12 @@ export const SQL_MIGRATIONS: string[] = [
       updated_at            INTEGER NOT NULL
     );
   `,
+
+  // migration_0002 — business logo (shown in Settings, the home header, and
+  // exported quote/invoice PDFs in place of the plain letter mark). Always
+  // JPEG — that's what expo-image-picker's base64 output always is,
+  // regardless of the source image's original format.
+  `
+    ALTER TABLE settings ADD COLUMN logo_base64 TEXT;
+  `,
 ]

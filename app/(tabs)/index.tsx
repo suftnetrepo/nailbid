@@ -5,10 +5,11 @@ import {
   StyledCard, StyledButton, StyledPressable,
   StyledDivider,
 } from 'fluent-styles'
+import { Image } from 'react-native'
 import { Text } from '../../src/components/Text'
 import { useColors, useIsDark, getStatusColors } from '../../src/constants'
 import { useDashboard, useQuotes, useInvoices, useSettings } from '../../src/hooks'
-import { formatCurrency, formatShortDate } from '../../src/utils'
+import { formatCurrency, formatShortDate, LOGO_MIME_TYPE } from '../../src/utils'
 import { useAuthStore } from '../../src/stores'
 import {
   GearIcon, PlusIcon, PersonPlusIcon, DocumentIcon, ReceiptIcon,
@@ -66,11 +67,28 @@ export default function DashboardScreen() {
       <StyledPage.Header.Full>
          {/* Greeting header */}
         <Stack marginHorizontal={24} horizontal alignItems="flex-start" justifyContent="space-between">
-          <Stack flex={1}>
-            <Text variant="body" color={C.textSecondary}>{greetingFor(now.getHours())}</Text>
-            <Text variant="title" color={C.textPrimary} numberOfLines={1} style={{ marginTop: 2 }}>
-              {settings?.businessName || 'NailBid'}
-            </Text>
+          <Stack justifyContent='flex-start' alignItems="center" horizontal flex={1} gap={12}>
+            <StyledPressable onPress={() => router.push('/settings')} accessibilityRole="button" accessibilityLabel="Open Settings">
+              <Stack width={40} height={40} borderRadius={20} backgroundColor={C.primary} alignItems="center" justifyContent="center" style={{ overflow: 'hidden' }}>
+                {settings?.logoBase64 ? (
+                  <Image
+                    source={{ uri: `data:${LOGO_MIME_TYPE};base64,${settings.logoBase64}` }}
+                    style={{ width: 40, height: 40 }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text variant="label" color={C.white} fontWeight="800">
+                    {(settings?.businessName?.trim().charAt(0) || 'N').toUpperCase()}
+                  </Text>
+                )}
+              </Stack>
+            </StyledPressable>
+            <Stack flex={1}>
+              <Text variant="body" color={C.textSecondary}>{greetingFor(now.getHours())}</Text>
+              <Text variant="title" color={C.textPrimary} numberOfLines={1} style={{ marginTop: 2 }}>
+                {settings?.businessName || 'NailBid'}
+              </Text>
+            </Stack>
           </Stack>
           <Stack horizontal gap={10}>
             {hasPin && (

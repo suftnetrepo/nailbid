@@ -45,8 +45,14 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSCameraUsageDescription</key>
+    <string>NailBid uses the camera to scan your business logo, shown on exported quotes and invoices.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>NailBid uses Face ID to unlock the app so your business and customer data stays protected.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your microphone</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>NailBid uses your photo library to set your business logo, shown on exported quotes and invoices.</string>
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>

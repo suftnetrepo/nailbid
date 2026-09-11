@@ -82,6 +82,10 @@ export const settings = sqliteTable('settings', {
   defaultPaymentTerms: integer('default_payment_terms').notNull().default(14), // days
   quoteCounter:    integer('quote_counter').notNull().default(1),
   invoiceCounter:  integer('invoice_counter').notNull().default(1),
+  // Business logo — base64-encoded JPEG, no data: URI prefix (that's what
+  // expo-image-picker's base64 output always is). Shown in Settings, the
+  // home header, and exported PDFs in place of the plain letter mark.
+  logoBase64:      text('logo_base64'),
   updatedAt:       integer('updated_at', { mode: 'timestamp' }).notNull(),
 })
 

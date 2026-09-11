@@ -324,3 +324,13 @@ export const ShieldCheckIcon: React.FC<IconProps> = ({ size = 24, color = '#000'
     <Path d="M9 12l2 2 4-4.5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
   </Svg>
 )
+
+// ─── Business logo ──────────────────────────────────────────────────────────
+
+export const CameraIcon: React.FC<IconProps> = ({ size = 24, color = '#000', strokeWidth = 2 }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M4 8.5a1.5 1.5 0 011.5-1.5h1.6l1-1.6a1.5 1.5 0 011.27-.7h5.26a1.5 1.5 0 011.27.7l1 1.6h1.6A1.5 1.5 0 0120 8.5v9A1.5 1.5 0 0118.5 19h-13A1.5 1.5 0 014 17.5v-9z"
+      stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+    <Circle cx="12" cy="13" r="3.4" stroke={color} strokeWidth={strokeWidth} />
+  </Svg>
+)

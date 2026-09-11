@@ -66,7 +66,7 @@ export default function PremiumScreen() {
 
   return (
     <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
-      <ScreenHeader title="NailBid Pro" onBackPress={() => goBack('/settings')} />
+      <ScreenHeader title="NailBid Pro" onBackPress={() => goBack('/settings')} marginTop={16} />
 
       <StyledScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
 

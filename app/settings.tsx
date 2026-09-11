@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Image } from 'react-native'
 import { router } from 'expo-router'
 import {
   StyledPage, StyledScrollView, Stack,
@@ -15,11 +16,11 @@ import { getCurrency } from '../src/constants/currencies'
 import { useSettings } from '../src/hooks'
 import { usePremium } from '../src/hooks/usePremium'
 import { useThemeStore, useAuthStore, useCurrencyStore, type ThemeMode } from '../src/stores'
-import { isPreset, sanitizeNumeric, parseClamped, goBack } from '../src/utils'
+import { isPreset, sanitizeNumeric, parseClamped, goBack, pickBusinessLogo, LOGO_MIME_TYPE } from '../src/utils'
 import {
   BriefcaseIcon, PhoneIcon, MailIcon, HashIcon,
   PercentIcon, HardHatIcon, CalendarIcon, SparkleIcon,
-  SunIcon, MoonIcon, DeviceIcon, ChevronRightIcon, LockIcon, WalletIcon,
+  SunIcon, MoonIcon, DeviceIcon, ChevronRightIcon, LockIcon, WalletIcon, CameraIcon,
 } from '../src/icons'
 
 const APPEARANCE_OPTIONS: { mode: ThemeMode; label: string; Icon: typeof SunIcon }[] = [
@@ -124,7 +125,18 @@ export default function SettingsScreen() {
     }
   }
 
-  const initial = businessName.trim().charAt(0).toUpperCase() || 'Q'
+  const initial = businessName.trim().charAt(0).toUpperCase() || 'N'
+
+  const handlePickLogo = async () => {
+    const result = await pickBusinessLogo(!!settings?.logoBase64)
+    if (result === undefined) return // cancelled
+    try {
+      await save({ logoBase64: result })
+      toast.success(result ? 'Logo updated' : 'Logo removed')
+    } catch (e: any) {
+      toast.error('Failed to save logo', e?.message)
+    }
+  }
 
   return (
     <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
@@ -141,9 +153,26 @@ export default function SettingsScreen() {
             shadowOffset: { width: 0, height: 8 }, elevation: 6,
           }}
         >
-          <Stack width={52} height={52} borderRadius={26} backgroundColor={C.primary} alignItems="center" justifyContent="center">
-            <Text variant="title" color={C.white} fontWeight="800">{initial}</Text>
-          </Stack>
+          <StyledPressable onPress={handlePickLogo} accessibilityRole="button" accessibilityLabel="Change business logo">
+            <Stack width={52} height={52} borderRadius={26} backgroundColor={C.primary} alignItems="center" justifyContent="center" style={{ overflow: 'hidden' }}>
+              {settings?.logoBase64 ? (
+                <Image
+                  source={{ uri: `data:${LOGO_MIME_TYPE};base64,${settings.logoBase64}` }}
+                  style={{ width: 52, height: 52 }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text variant="title" color={C.white} fontWeight="800">{initial}</Text>
+              )}
+            </Stack>
+            <Stack
+              width={20} height={20} borderRadius={10} backgroundColor={C.bgCard}
+              alignItems="center" justifyContent="center"
+              style={{ position: 'absolute', bottom: -2, right: -2, borderWidth: 2, borderColor: C.navy }}
+            >
+              <CameraIcon size={11} strokeWidth={2.4} color={C.textPrimary} />
+            </Stack>
+          </StyledPressable>
           <Stack flex={1}>
             <Text variant="subtitle" color={C.white} fontWeight="700" numberOfLines={1}>
               {businessName.trim() || 'Your business'}
