@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -21,7 +22,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#E8470A"
       },
-      "package": "com.suftnet.quickbid"
+      "package": "com.suftnet.quickbid",
+      "versionCode": 1
     },
     "plugins": [
       "expo-router",
@@ -44,7 +46,21 @@
           "photosPermission": "NailBid uses your photo library to set your business logo, shown on exported quotes and invoices.",
           "cameraPermission": "NailBid uses the camera to scan your business logo, shown on exported quotes and invoices."
         }
-      ]
+      ],
+      "./plugins/withAndroidReleaseSigning.js",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "kotlinVersion": "1.9.25",
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ],
+      "expo-font"
     ],
     "scheme": "quickbid",
     "experiments": {

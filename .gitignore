@@ -29,6 +29,14 @@ android/.gradle/
 *.jks
 *.keystore
 
+# Android release signing keystore + passwords — never commit. Back this
+# up (see credentials/android/README.md) outside of git before first upload.
+credentials/
+
+# Build outputs
+*.aab
+*.apk
+
 # ─── OS / editor cruft ────────────────────────────────────────────────────────
 .DS_Store
 *.log
