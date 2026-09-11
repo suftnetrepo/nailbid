@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Linking } from 'react-native'
+import { Linking, Platform } from 'react-native'
 import {
   StyledPage, StyledScrollView, Stack,
   StyledCard, StyledButton, StyledPressable,
@@ -64,8 +64,18 @@ export default function PremiumScreen() {
     }
   }
 
+  // Required subscription disclosures (Apple 3.1.2 / Play Subscriptions
+  // policy): title, length, price and auto-renewal terms must be clear on
+  // the purchase screen itself, plus where to manage or cancel. Both must
+  // be platform-aware — a build that always says "Apple ID" is wrong (and
+  // reviewable) on Android, and vice versa.
+  const paymentAccountLabel = Platform.OS === 'ios' ? 'Apple ID' : 'Google Play account'
+  const manageSubscriptionHint = Platform.OS === 'ios'
+    ? 'Settings > your name > Subscriptions'
+    : 'Google Play > Payments & subscriptions > Subscriptions'
+
   return (
-    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'}>
+    <StyledPage flex={1} backgroundColor={C.bg} statusBarStyle={isDark ? 'light-content' : 'dark-content'} statusBarBackgroundColor={Platform.OS === 'android' ? C.bg : undefined}>
       <ScreenHeader title="NailBid Pro" onBackPress={() => goBack('/settings')} marginTop={16} />
 
       <StyledScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
@@ -175,6 +185,18 @@ export default function PremiumScreen() {
               </Text>
             )}
 
+            {(selected === 'monthly' || selected === 'yearly') && (
+              <Stack gap={2} style={{ marginBottom: 14 }}>
+                <Text variant="caption" color={C.textPrimary} fontWeight="600" textAlign="center">
+                  {PLANS.find((p) => p.key === selected)!.price}/{selected === 'monthly' ? 'month' : 'year'},
+                  {' '}billed {selected === 'monthly' ? 'monthly' : 'annually'}. Auto-renews until cancelled.
+                </Text>
+                <Text variant="caption" color={C.textMuted} textAlign="center">
+                  Cancel anytime in {manageSubscriptionHint}.
+                </Text>
+              </Stack>
+            )}
+
             {/* Restore & legal */}
             <Stack alignItems="center" gap={8}>
               <StyledPressable
@@ -187,7 +209,7 @@ export default function PremiumScreen() {
               </StyledPressable>
 
               <Text variant="caption" color={C.textMuted} textAlign="center">
-                Payment will be charged to your Apple ID account at confirmation of purchase.
+                Payment will be charged to your {paymentAccountLabel} at confirmation of purchase.
               </Text>
 
               <Stack horizontal alignItems="center" justifyContent="center" gap={10}>
